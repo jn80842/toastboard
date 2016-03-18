@@ -1,3 +1,15 @@
+#include <Base64.h>
+#include <global.h>
+#include <MD5.h>
+#include <sha1.h>
+#include <WebSocketClient.h>
+#include <WebSocketServer.h>
+
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <WiFiServer.h>
+#include <WiFiUdp.h>
+
 #include <Adafruit_GFX.h>
 #include <Wire.h>
 #include <Adafruit_LEDBackpack.h>
@@ -52,6 +64,15 @@ int botdelay = 0;
 int control_pins[] = {control_1_Pin, control_2_Pin, control_3_Pin, control_4_Pin};
 int I_control_pins[] = {I_control_1_Pin, I_control_2_Pin, I_control_3_Pin, I_control_4_Pin};
 int adc_pins[] = {adc_1_Pin, adc_2_Pin, adc_3_Pin};
+
+// wifi stuff
+char ssid[] = "";
+char pass[] = "";
+int status = WL_IDLE_STATUS;
+WiFiServer server(80);
+
+WebSocketServer webSocketServer;
+WiFiClient client;
 
 void setup() {
   
@@ -117,6 +138,15 @@ for (int i = 0; i < 48; i++){
   right_bar.writeDisplay();
   }
 
+// connect to wifi
+  while(status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to SSID: ");
+    Serial.println(ssid);
+    status = WiFi.begin(ssid,pass);
+    delay(10000);
+  }
+  server.begin();
+  printWiFiStatus();
 
 } //SETUP END
 
@@ -125,6 +155,8 @@ for (int i = 0; i < 48; i++){
 //==================================================
 
 void loop() {
+  // check wifi connection
+  client = server.available();
   
 buttonState = digitalRead(buttonPin);
 
@@ -136,14 +168,18 @@ if (buttonState == HIGH){
  floatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results);
  serialdebug(avg_Results,std_dev,float_results,resholder);
  ledbar_switcher(avg_Results,float_results);
- //JSON PACKER
+ 
+ if (client) {
+   if (client.connected() && webSocketServer.handshake(client)) {
+     webSocketServer.sendData(formatJsonData(avg_Results,float_results,true));
+     webSocketServer.sendData(formatJsonData(avg_Results,float_results,false));
+   }
+ }
  
  digitalWrite(green_led_pin,HIGH);                                                          //TURN BACK ON POWER LED AFTER SCAN+RESULTS  
  delay(1000);                                                                              //DELAY FOR LAZY SCAN BUTTOND DEBOUNCING
   }
 
-
-//Should do check for Wifi conn every X loops
 
 
 
@@ -359,4 +395,47 @@ Serial.println("============AVG VALUES=============");
       Serial.print("   -   ");
       Serial.println(float_results[i],3);
     }
+}
+
+String formatJsonData(float avg_results[48], int float_results[48], boolean left) {
+  String rows;
+  char* rowVal;
+  int beginBound, endBound;
+  if (left) {
+    rows = "{rowsLeft: [";
+    beginBound = 0;
+    endBound = 24;
+  } else {
+    rows = "{rowsRight: [";
+    beginBound = 24;
+    endBound = 48;
+  }
+  for (int i=beginBound;i<endBound;i++) {
+    if (float_results[i] == 0) {
+      sprintf(rowVal,"%f",avg_results[i]);
+      rows += rowVal;
+    } else {
+      rows += "NaN";
+    }
+    if (i != (endBound - 1)) {
+      rows += ",";
+    }
+  }
+  rows += "]}";
+  return rows;
+}
+
+void printWiFiStatus() {
+  Serial.print("SSID: ");
+  Serial.println(WiFi.SSID());
+  
+  IPAddress ip = WiFi.localIP();
+  Serial.print("IP Address: ");
+  Serial.println(ip);
+  
+  long rssi = WiFi.RSSI();
+  Serial.print("Signal strength (RSSI): ");
+  Serial.println(rssi);
+  Serial.println(" dBm ");
+
 }
