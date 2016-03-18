@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include <Base64.h>
 #include <global.h>
 #include <MD5.h>
@@ -21,9 +19,21 @@ WiFiServer server(80);
 WebSocketServer webSocketServer;
 boolean continuous = false;
 
+// holder for fake data
+float avg_results[48];
+int float_results[48] = {0};
+
 void setup()
 {
-    Serial.begin(9600);
+  // populate fake data
+  for (int i=0;i<48;i++) {
+    avg_results[i] = 3.3;
+    if (i%3 == 0) {
+      float_results[i] = 1;
+    }
+  }
+
+  Serial.begin(9600);
   while (!Serial) {
     ;
   }
@@ -51,13 +61,12 @@ void loop()
         if (data == "stop") {
           continuous = false;
         } else if (data == "start") {
-          webSocketServer.sendData("{rowsRight: [0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1]}");
-          webSocketServer.sendData("{rowsLeft: [0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1]}");   
+          webSocketServer.sendData(formatJsonData(avg_results,float_results,true));
+          webSocketServer.sendData(formatJsonData(avg_results,float_results,false));  
         } else if (continuous || data == "stream") {
-          webSocketServer.sendData("{rowsRight: [0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1]}");
-          webSocketServer.sendData("{rowsLeft: [0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1,0.0,0.0,1.0,0.0,2.1,0.0,0.0,1.0,3.3,2.1]}");
+          webSocketServer.sendData(formatJsonData(avg_results,float_results,true));
+          webSocketServer.sendData(formatJsonData(avg_results,float_results,false));
           continuous = true;
-          delay(3000);
         } else if (data.length() > 0) {
           webSocketServer.sendData("got a message!");
         }
@@ -80,4 +89,32 @@ void printWiFiStatus() {
   Serial.println(rssi);
   Serial.println(" dBm ");
 
+}
+
+String formatJsonData(float avg_results[48], int float_results[48], boolean left) {
+  String rows;
+  char* rowVal;
+  int beginBound, endBound;
+  if (left) {
+    rows = "{rowsLeft: [";
+    beginBound = 0;
+    endBound = 24;
+  } else {
+    rows = "{rowsRight: [";
+    beginBound = 24;
+    endBound = 48;
+  }
+  for (int i=beginBound;i<endBound;i++) {
+    if (float_results[i] == 0) {
+      sprintf(rowVal,"%f",avg_results[i]);
+      rows += rowVal;
+    } else {
+      rows += "NaN";
+    }
+    if (i != (endBound - 1)) {
+      rows += ",";
+    }
+  }
+  rows += "]}";
+  return rows;
 }
