@@ -93,7 +93,6 @@ void printWiFiStatus() {
 
 String formatJsonData(float avg_results[48], int float_results[48], boolean left) {
   String rows;
-  char* rowVal;
   int beginBound, endBound;
   if (left) {
     rows = "{rowsLeft: [";
@@ -106,8 +105,9 @@ String formatJsonData(float avg_results[48], int float_results[48], boolean left
   }
   for (int i=beginBound;i<endBound;i++) {
     if (float_results[i] == 0) {
-      sprintf(rowVal,"%f",avg_results[i]);
-      rows += rowVal;
+      static char buffer;
+      dtostrf(avg_results[i],3,1,buffer);
+      rows += buffer;
     } else {
       rows += "NaN";
     }
