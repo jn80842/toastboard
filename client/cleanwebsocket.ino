@@ -40,7 +40,6 @@ void setup()
 
 void loop()
 {
-  Serial.println("loop");
   String data;
   WiFiClient client = server.available();
   if (client) {
