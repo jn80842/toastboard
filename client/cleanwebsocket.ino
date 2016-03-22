@@ -14,8 +14,8 @@
 #define CALLBACK_FUNCTIONS 1
 
 // wifi stuff obv
-char ssid[] = "Dennis's Wi-Fi Network";
-char pass[] = "winternight";
+char ssid[] = "";
+char pass[] = "";
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
