@@ -105,7 +105,7 @@ String formatJsonData(float avg_results[48], int float_results[48], boolean left
   }
   for (int i=beginBound;i<endBound;i++) {
     if (float_results[i] == 0) {
-      static char buffer;
+      static char buffer[3];
       dtostrf(avg_results[i],3,1,buffer);
       rows += buffer;
     } else {
