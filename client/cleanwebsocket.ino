@@ -46,7 +46,7 @@ void loop()
     Serial.println("new client");
     if (client.connected() && webSocketServer.handshake(client)) {
       while (client.connected()) {
-        webSocketServer.sendData("hello");
+        // webSocketServer.sendData("hello");
         data = webSocketServer.getData();
         if (data.length() >0) {
           webSocketServer.sendData("got a message!");
