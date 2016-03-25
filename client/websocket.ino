@@ -95,11 +95,11 @@ String formatJsonData(float avg_results[48], int float_results[48], boolean left
   String rows;
   int beginBound, endBound;
   if (left) {
-    rows = "{rowsLeft: [";
+    rows = "{\"rowsLeft\": [";
     beginBound = 0;
     endBound = 24;
   } else {
-    rows = "{rowsRight: [";
+    rows = "{\"rowsRight\": [";
     beginBound = 24;
     endBound = 48;
   }
@@ -109,7 +109,7 @@ String formatJsonData(float avg_results[48], int float_results[48], boolean left
       dtostrf(avg_results[i],3,1,buffer);
       rows += buffer;
     } else {
-      rows += "NaN";
+      rows += "\"f\"";
     }
     if (i != (endBound - 1)) {
       rows += ",";
