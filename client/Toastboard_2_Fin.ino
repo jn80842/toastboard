@@ -171,8 +171,12 @@ if (buttonState == HIGH){
  
  if (client) {
    if (client.connected() && webSocketServer.handshake(client)) {
-     webSocketServer.sendData(formatJsonData(avg_Results,float_results,true));
-     webSocketServer.sendData(formatJsonData(avg_Results,float_results,false));
+    String left = formatJsonData(avg_Results,float_results,true);
+    String right = formatJsonData(avg_Results,float_results,false);
+    Serial.println(left);
+    Serial.println(right);
+     webSocketServer.sendData(left);
+     webSocketServer.sendData(right);
    }
  }
  
