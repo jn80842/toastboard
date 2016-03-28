@@ -66,8 +66,8 @@ int I_control_pins[] = {I_control_1_Pin, I_control_2_Pin, I_control_3_Pin, I_con
 int adc_pins[] = {adc_1_Pin, adc_2_Pin, adc_3_Pin};
 
 // wifi stuff
-char ssid[] = "";
-char pass[] = "";
+char ssid[] = "pirateplaypen";
+char pass[] = "letmegrababeer";
 int status = WL_IDLE_STATUS;
 WiFiServer server(80);
 
@@ -265,18 +265,23 @@ float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[
      }
     
     //THIS PART IS JANKY: TOTALLY EMPIRICAL NUMBERS. NEED TO TEST AGAIN WITH EACH PCB
-    if (j < 32){
+    if (j < 17){
       if (resholder[j] > 300 && resholder[j] < 600){
       float_results[j] = 1;
       }
     }
-    else {
-     if (resholder[j] > 250 && resholder[j] < 550){
+    else if (j <32){
+     if (resholder[j] > 275 && resholder[j] < 575){
       float_results[j] = 1;
      } 
     }
+     else{
+     if (resholder[j] > 265 && resholder[j] < 550){
+      float_results[j] = 1;
+     } 
+     }
     
-     if (avg_Results[j] > 0.010 && std_dev[j] > 0.001){
+     if (avg_Results[j] > 0.100 && std_dev[j] > 0.001){
       float_results[j] = 1;
       }
 
@@ -439,3 +444,4 @@ void printWiFiStatus() {
   Serial.println(" dBm ");
 
 }
+
