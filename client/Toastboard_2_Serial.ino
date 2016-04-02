@@ -1,7 +1,8 @@
+//------------------------------------------------------------------------------------------------------------
 //TO SWITCH BACK AND FORTH FROM CC3200 DEBUGGING ONLY MODE,
 //TOGGLE THIS FLAG:
 boolean cc_only = true;
-
+//------------------------------------------------------------------------------------------------------------
 
 #include <Base64.h>
 #include <global.h>
@@ -246,6 +247,7 @@ if (buttonState == HIGH){
 //FUNCTIONS
 //===========================================
 
+//------------------------------------------------------------------------------------------------------------
 void clearall(float avg_Results[48],float std_dev[48],int float_results[48],float resholder[48]){
   for (int i = 0; i < 48; i++){
     avg_Results[i] = 0;
@@ -259,10 +261,9 @@ void clearall(float avg_Results[48],float std_dev[48],int float_results[48],floa
     right_bar.clear();
     right_bar.writeDisplay();
     }  
+  }
 }
-
-}
-
+//------------------------------------------------------------------------------------------------------------
 float scanchain(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], float adc_Results[48][3], int samp_delay, int scannum){
   for (int a = 0; a < scannum; a++){
   //First loop: Control pins (on muxes farthest from ADC)
@@ -307,7 +308,7 @@ float scanchain(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3
   }
 }
 }
-
+//------------------------------------------------------------------------------------------------------------
 float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int float_results[48], float resholder[48], float std_dev[48], float avg_Results[48]){
   
   for (int j = 0; j<48; j++){
@@ -352,7 +353,7 @@ float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[
   delay(1);
    }
 }
-
+//------------------------------------------------------------------------------------------------------------
 void set_led(int index, int color) {
   
   if (index<24) {
@@ -363,7 +364,7 @@ void set_led(int index, int color) {
         right_bar.setBar(index,color);
     }
 }
-
+//------------------------------------------------------------------------------------------------------------
 void ledbar_switcher(float avg_Results[48], int float_results[48]){
   for (int i=0; i < 48; i++){
    if (avg_Results[i] > 3.0){  //VDD DETECTION
@@ -390,9 +391,7 @@ float rounder(float src, int precision){
   result = des * pow(10, -1*precision);
   return result;
 }
-
-
-
+//------------------------------------------------------------------------------------------------------------
 float stddev(int num_rows, int num_scans, float avg_Results[48], float std_dev[48]){
 
   float cum_Results[48]={0};
@@ -414,9 +413,7 @@ float stddev(int num_rows, int num_scans, float avg_Results[48], float std_dev[4
       std_dev[d] = sqrt(cum_dev[d] / num_scans);
     }
 }
-
-
-
+//------------------------------------------------------------------------------------------------------------
 void serialdebug(float avg_Results[48], float std_dev[48], int float_results[48], float resholder[48]){
 Serial.println("============AVG VALUES=============");
    
@@ -461,7 +458,7 @@ Serial.println("============AVG VALUES=============");
       Serial.println(float_results[i],3);
     }
 }
-
+//------------------------------------------------------------------------------------------------------------
 String formatJsonData(float avg_results[48], int float_results[48]) {
   String rows;
   rows = "{\"rowsLeft\":[";
@@ -493,19 +490,5 @@ String formatJsonData(float avg_results[48], int float_results[48]) {
   rows += "]}";
   return rows;
 }
-
-void printWiFiStatus() {
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-  
-  IPAddress ip = WiFi.localIP();
-  Serial.print("IP Address: ");
-  Serial.println(ip);
-  
-  long rssi = WiFi.RSSI();
-  Serial.print("Signal strength (RSSI): ");
-  Serial.println(rssi);
-  Serial.println(" dBm ");
-
-}
+//------------------------------------------------------------------------------------------------------------
 
