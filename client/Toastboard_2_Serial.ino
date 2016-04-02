@@ -30,7 +30,7 @@ char buffer[30];
 char sendDataOnce = 'd';
 char sendDataContinuously = 's';
 char stopSendingData = 't';
- 
+char sendOscilloscope ='o';
 
 //PIN ADDRESSING
 int adc_1_Pin = 2;// select the ADC channel pin
@@ -184,7 +184,8 @@ if (Serial.available() > 0) {
   digitalWrite(blue_led_pin,HIGH);
   digitalWrite(lp_ledPin,HIGH);
   
-  incomingByte = Serial.readBytesUntil('\n',buffer,30);
+  Serial.readBytesUntil('\n',buffer,30);
+  incomingByte = buffer[0];
   
   if (incomingByte == sendDataOnce){ 
     clearall(avg_Results,std_dev,float_results,resholder); 
@@ -212,6 +213,9 @@ if (Serial.available() > 0) {
     Serial.println(formatJsonData(avg_Results,float_results));
   //  Serial.println(formatJsonData(avg_Results,float_results,false));
     }
+  }
+  else if (incomingByte == sendOscilloscope){
+   //sillyscopeDecoder(buffer); 
   }
 }
 //-------------------------------------------------------------------------------------------------------------------------
@@ -486,4 +490,6 @@ String formatJsonData(float avg_results[48], int float_results[48]) {
   return rows;
 }
 //------------------------------------------------------------------------------------------------------------
+void sillyscopeDecode(char buffer) {
 
+}
