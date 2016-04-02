@@ -9,11 +9,6 @@ boolean cc_only = true;
 #include <MD5.h>
 #include <sha1.h>
 
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WiFiServer.h>
-#include <WiFiUdp.h>
-
 #include <Adafruit_GFX.h>
 #include <Wire.h>
 #include <Adafruit_LEDBackpack.h>
