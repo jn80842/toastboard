@@ -176,8 +176,8 @@ if (push_buttonState == HIGH){
   scanchain(control_pins,I_control_pins,adc_pins,adc_Results,sampdelay, num_scans);      
   stddev(num_rows,num_scans,avg_Results,std_dev);
   floatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results);
-  Serial.println(formatJsonData(avg_Results,float_results,true));
-  Serial.println(formatJsonData(avg_Results,float_results,false));
+  Serial.println(formatJsonData(avg_Results,float_results));
+ // Serial.println(formatJsonData(avg_Results,float_results,false));
   //Serial.println("{\"rowsLeft\":[\"f\",\"f\",\"f\",1.9,\"f\",\"f\",1.9,\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\"],\"rowsRight\":[\"f\",\"f\",\"f\",\"f\",3.2,\"f\",\"f\",\"f\",\"f\",\"f\",1.45,\"f\",\"f\",0.0,\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\",\"f\"]}");
   delay(1000);
 }
@@ -198,8 +198,8 @@ if (Serial.available() > 0) {
     if (cc_only == false){
        ledbar_switcher(avg_Results,float_results);
     }
-    Serial.println(formatJsonData(avg_Results,float_results,true));
-    Serial.println(formatJsonData(avg_Results,float_results,false));
+    Serial.println(formatJsonData(avg_Results,float_results));
+  //  Serial.println(formatJsonData(avg_Results,float_results,false));
     delay(1000);
   }
   else if (incomingByte == sendDataContinuously){
@@ -213,8 +213,8 @@ if (Serial.available() > 0) {
        ledbar_switcher(avg_Results,float_results);
     }
     
-    Serial.println(formatJsonData(avg_Results,float_results,true));
-    Serial.println(formatJsonData(avg_Results,float_results,false));
+    Serial.println(formatJsonData(avg_Results,float_results));
+  //  Serial.println(formatJsonData(avg_Results,float_results,false));
     }
   }
 }
@@ -229,8 +229,8 @@ if (buttonState == HIGH){
  floatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results);
  serialdebug(avg_Results,std_dev,float_results,resholder);
  ledbar_switcher(avg_Results,float_results);
- Serial.println(formatJsonData(avg_Results,float_results,true));
- Serial.println(formatJsonData(avg_Results,float_results,false));
+ Serial.println(formatJsonData(avg_Results,float_results));
+// Serial.println(formatJsonData(avg_Results,float_results,false));
                                                       
  delay(1000);                                                                              //DELAY FOR LAZY SCAN BUTTOND DEBOUNCING
   }
@@ -462,19 +462,10 @@ Serial.println("============AVG VALUES=============");
     }
 }
 
-String formatJsonData(float avg_results[48], int float_results[48], boolean left) {
+String formatJsonData(float avg_results[48], int float_results[48]) {
   String rows;
-  int beginBound, endBound;
-  if (left) {
-    rows = "{\"rowsLeft\": [";
-    beginBound = 0;
-    endBound = 24;
-  } else {
-    rows = "{\"rowsRight\": [";
-    beginBound = 24;
-    endBound = 48;
-  }
-  for (int i=beginBound;i<endBound;i++) {
+  rows = "{\"rowsLeft\":[";
+  for (int i=0;i<24;i++) {
     if (float_results[i] == 0) {
       static char buffer[3];
       dtostrf(avg_results[i],3,1,buffer);
@@ -482,7 +473,20 @@ String formatJsonData(float avg_results[48], int float_results[48], boolean left
     } else {
       rows += "\"f\"";
     }
-    if (i != (endBound - 1)) {
+    if (i != 23) {
+      rows += ",";
+    }
+  }
+    rows += "],\"rowsRight\":[";
+      for (int i=24;i<48;i++) {
+    if (float_results[i] == 0) {
+      static char buffer[3];
+      dtostrf(avg_results[i],3,1,buffer);
+      rows += buffer;
+    } else {
+      rows += "\"f\"";
+    }
+    if (i != 47) {
       rows += ",";
     }
   }
