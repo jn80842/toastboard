@@ -530,7 +530,7 @@ float sillyscopeScanner(float sillybuffer[100],int decodedRow, int control_pin_l
 //------------------------------------------------------------------------------------------------------------
 String formatSillyscopeJson(float sillybuffer[100], int decodedRow){
 
-  String json =  "{\"oscillo\":\"row\":";
+  String json =  "{\"oscillo\":{\"row\":";
   json += String(decodedRow);
   json += ", \"data\":[";
   for (int i=0;i<100;i++) {
@@ -538,9 +538,10 @@ String formatSillyscopeJson(float sillybuffer[100], int decodedRow){
       dtostrf(sillybuffer[i],3,1,buffer);
       json += buffer;
       if (i < 99){
-      json =+ ",";
+      json += ",";
       }
   }
-  json += "]}";
+  json += "]}}";
+  return json;
 }
 
