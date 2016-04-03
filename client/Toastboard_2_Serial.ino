@@ -32,6 +32,9 @@ char sendDataContinuously = 's';
 char stopSendingData = 't';
 char sendOscilloscope ='o';
 
+int decodedRow = 0;
+float sillybuffer[100];
+
 //PIN ADDRESSING
 int adc_1_Pin = 2;// select the ADC channel pin
 int adc_2_Pin = 6; 
@@ -215,8 +218,11 @@ if (Serial.available() > 0) {
     }
   }
   else if (incomingByte == sendOscilloscope){
-   //sillyscopeDecoder(buffer); 
-  }
+   decodedRow = sillyscopeDecoder(buffer); 
+   sillyscopeScanner(sillybuffer,decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
+   Serial.println(formatSillyscopeJson(sillybuffer, decodedRow));
+   }
+  
 }
 //-------------------------------------------------------------------------------------------------------------------------
 
@@ -490,6 +496,51 @@ String formatJsonData(float avg_results[48], int float_results[48]) {
   return rows;
 }
 //------------------------------------------------------------------------------------------------------------
-void sillyscopeDecode(char buffer) {
+int sillyscopeDecoder(char buffer[30]) {
+  int decodedRow;
+  String buffstring;
+  char dig1 = buffer[2];
+  char dig2 = buffer[3];
+  buffstring += dig1;
+  buffstring += dig2;
+  decodedRow = buffstring.toInt();
 
+
+  return decodedRow;
 }
+//------------------------------------------------------------------------------------------------------------
+float sillyscopeScanner(float sillybuffer[100],int decodedRow, int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int samp_delay){
+    int control_pin = control_pin_list[decodedRow % 4];
+    int I_control_pin = mux_pin_list[(decodedRow/4) % 4];
+    int adc_pin = adc_pin_list[decodedRow/16]; 
+    
+    digitalWrite(I_control_pin,HIGH);
+    digitalWrite(control_pin, HIGH);
+    
+    for (int i=0;i<100;i++) {
+    delay(samp_delay);
+    sillybuffer[i] = analogRead(adc_pin);
+    }
+    
+    digitalWrite(I_control_pin,LOW);
+    digitalWrite(control_pin, LOW);
+  
+  
+}
+//------------------------------------------------------------------------------------------------------------
+String formatSillyscopeJson(float sillybuffer[100], int decodedRow){
+
+  String json =  "{\"oscillo\":\"row\":";
+  json += String(decodedRow);
+  json += ", \"data\":[";
+  for (int i=0;i<100;i++) {
+      static char buffer[3];
+      dtostrf(sillybuffer[i],3,1,buffer);
+      json += buffer;
+      if (i < 99){
+      json =+ ",";
+      }
+  }
+  json += "]}";
+}
+
