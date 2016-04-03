@@ -519,7 +519,25 @@ float sillyscopeScanner(float sillybuffer[100],int decodedRow, int control_pin_l
     
     for (int i=0;i<100;i++) {
     delay(samp_delay);
-    sillybuffer[i] = analogRead(adc_pin);
+     float adc_value = analogRead(adc_pin);
+     adc_value = adc_value * (1.467/4096) * 3.0822; 
+     float round_res = rounder(adc_value, 2);
+          
+     //ADC STATIC OFFSET CORRECTOR, NO NEG. ENFORCER
+     if (adc_pin==0){
+    round_res = round_res - 0.01;
+    }
+    else {
+     round_res = round_res - 0.02;
+    }
+     
+    round_res = rounder(round_res, 3);
+     if (round_res < 0){
+    round_res = 0.000;
+    }
+    
+    sillybuffer[i] = round_res;     
+          
     }
     
     digitalWrite(I_control_pin,LOW);
