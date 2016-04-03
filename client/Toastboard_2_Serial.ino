@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------------------------------------
 //TO SWITCH BACK AND FORTH FROM CC3200 DEBUGGING ONLY MODE,
 //TOGGLE THIS FLAG:
-boolean cc_only = true;
+boolean cc_only = false;
 //------------------------------------------------------------------------------------------------------------
 
 #include <Base64.h>
@@ -219,9 +219,11 @@ if (Serial.available() > 0) {
   }
   else if (incomingByte == sendOscilloscope){
    decodedRow = sillyscopeDecoder(buffer); 
+   unsigned long starttime = millis();
+   
    while (Serial.available()==0){
    sillydata = sillyscopeScanner(decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
-   Serial.println(formatSillyscopeJson(sillydata, decodedRow));
+   Serial.println(formatSillyscopeJson(sillydata, decodedRow,starttime));
    }
     
     int control_pin = control_pins[decodedRow % 4];
@@ -267,12 +269,12 @@ void clearall(float avg_Results[48],float std_dev[48],int float_results[48],floa
     float_results[i]= 0;
     resholder[i] = 0;
     
-    if (cc_only == false){
-    left_bar.clear();
-    left_bar.writeDisplay();
-    right_bar.clear();
-    right_bar.writeDisplay();
-    }  
+//    if (cc_only == false){
+//    left_bar.clear();
+//    left_bar.writeDisplay();
+//    right_bar.clear();
+//    right_bar.writeDisplay();
+//    }  
   }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -378,6 +380,14 @@ void set_led(int index, int color) {
 }
 //------------------------------------------------------------------------------------------------------------
 void ledbar_switcher(float avg_Results[48], int float_results[48]){
+    
+  
+    left_bar.clear();
+    left_bar.writeDisplay();
+    right_bar.clear();
+    right_bar.writeDisplay();
+ 
+ 
   for (int i=0; i < 48; i++){
    if (avg_Results[i] > 3.0){  //VDD DETECTION
     set_led(i,LED_RED); 
@@ -501,6 +511,11 @@ String formatJsonData(float avg_results[48], int float_results[48]) {
   }
   rows += "]}";
   return rows;
+  
+  
+  //VDD = \"v\"
+  //GND = \"g\"
+  
 }
 //------------------------------------------------------------------------------------------------------------
 int sillyscopeDecoder(char buffer[30]) {
@@ -526,11 +541,10 @@ float sillyscopeScanner(int decodedRow, int control_pin_list[4], int mux_pin_lis
     digitalWrite(I_control_pin,HIGH);
     digitalWrite(control_pin, HIGH);
     
-    for (int i=0;i<100;i++) {
     delay(samp_delay);
-     float adc_value = analogRead(adc_pin);
-     adc_value = adc_value * (1.467/4096) * 3.0822; 
-     float round_res = rounder(adc_value, 2);
+    float adc_value = analogRead(adc_pin);
+    adc_value = adc_value * (1.467/4096) * 3.0822; 
+    float round_res = rounder(adc_value, 2);
           
      //ADC STATIC OFFSET CORRECTOR, NO NEG. ENFORCER
      if (adc_pin==0){
@@ -547,7 +561,7 @@ float sillyscopeScanner(int decodedRow, int control_pin_list[4], int mux_pin_lis
     
     sillydata = round_res;     
           
-    }
+    
     
     return sillydata;
 
@@ -555,14 +569,20 @@ float sillyscopeScanner(int decodedRow, int control_pin_list[4], int mux_pin_lis
   
 }
 //------------------------------------------------------------------------------------------------------------
-String formatSillyscopeJson(float sillydata, int decodedRow){
+String formatSillyscopeJson(float sillydata, int decodedRow, unsigned long starttime){
 
+  unsigned long thistime = millis();
+  thistime -= starttime;
   String json =  "{\"oscillo\":{\"row\":";
   json += String(decodedRow);
   json += ", \"data\":[";
   static char buffer[3];
   dtostrf(sillydata,3,1,buffer);
   json += buffer;
+  json += "],\"time\":[";
+  static char buffer_2[7];
+  dtostrf(thistime,3,0,buffer_2);
+  json += buffer_2;
   json += "]}}";
   return json;
   
