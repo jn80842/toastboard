@@ -34,7 +34,7 @@ char sendOscilloscope ='o';
 
 int decodedRow = 0;
 float sillybuffer[100];
-
+float sillydata = 0;
 //PIN ADDRESSING
 int adc_1_Pin = 2;// select the ADC channel pin
 int adc_2_Pin = 6; 
@@ -219,8 +219,15 @@ if (Serial.available() > 0) {
   }
   else if (incomingByte == sendOscilloscope){
    decodedRow = sillyscopeDecoder(buffer); 
-   sillyscopeScanner(sillybuffer,decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
-   Serial.println(formatSillyscopeJson(sillybuffer, decodedRow));
+   while (Serial.available()==0){
+   sillydata = sillyscopeScanner(decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
+   Serial.println(formatSillyscopeJson(sillydata, decodedRow));
+   }
+    
+    int control_pin = control_pins[decodedRow % 4];
+    int I_control_pin = I_control_pins[(decodedRow/4) % 4];
+    digitalWrite(I_control_pin,LOW);
+    digitalWrite(control_pin, LOW);
    }
   
 }
@@ -509,7 +516,59 @@ int sillyscopeDecoder(char buffer[30]) {
   return decodedRow;
 }
 //------------------------------------------------------------------------------------------------------------
-float sillyscopeScanner(float sillybuffer[100],int decodedRow, int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int samp_delay){
+float sillyscopeScanner(int decodedRow, int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int samp_delay){
+    float sillydata;
+    
+    int control_pin = control_pin_list[decodedRow % 4];
+    int I_control_pin = mux_pin_list[(decodedRow/4) % 4];
+    int adc_pin = adc_pin_list[decodedRow/16]; 
+    
+    digitalWrite(I_control_pin,HIGH);
+    digitalWrite(control_pin, HIGH);
+    
+    for (int i=0;i<100;i++) {
+    delay(samp_delay);
+     float adc_value = analogRead(adc_pin);
+     adc_value = adc_value * (1.467/4096) * 3.0822; 
+     float round_res = rounder(adc_value, 2);
+          
+     //ADC STATIC OFFSET CORRECTOR, NO NEG. ENFORCER
+     if (adc_pin==0){
+    round_res = round_res - 0.01;
+    }
+    else {
+     round_res = round_res - 0.02;
+    }
+     
+    round_res = rounder(round_res, 3);
+     if (round_res < 0){
+    round_res = 0.000;
+    }
+    
+    sillydata = round_res;     
+          
+    }
+    
+    return sillydata;
+
+  
+  
+}
+//------------------------------------------------------------------------------------------------------------
+String formatSillyscopeJson(float sillydata, int decodedRow){
+
+  String json =  "{\"oscillo\":{\"row\":";
+  json += String(decodedRow);
+  json += ", \"data\":[";
+  static char buffer[3];
+  dtostrf(sillydata,3,1,buffer);
+  json += buffer;
+  json += "]}}";
+  return json;
+  
+}
+//------------------------------------------------------------------------------------------------------------
+float sillyscopeBuffer(float sillybuffer[100],int decodedRow, int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int samp_delay){
     int control_pin = control_pin_list[decodedRow % 4];
     int I_control_pin = mux_pin_list[(decodedRow/4) % 4];
     int adc_pin = adc_pin_list[decodedRow/16]; 
@@ -546,7 +605,7 @@ float sillyscopeScanner(float sillybuffer[100],int decodedRow, int control_pin_l
   
 }
 //------------------------------------------------------------------------------------------------------------
-String formatSillyscopeJson(float sillybuffer[100], int decodedRow){
+String formatSillyscopeBuffer(float sillybuffer[100], int decodedRow){
 
   String json =  "{\"oscillo\":{\"row\":";
   json += String(decodedRow);
