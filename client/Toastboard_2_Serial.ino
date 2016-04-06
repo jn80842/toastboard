@@ -69,10 +69,11 @@ int total_reads = num_scans * num_rows - 1;
 
 float adc_Results[48][3];
 int float_results[48];
+//float resholder[48][128];
 float resholder[48];
 float avg_Results[48] = {0};
 float std_dev[48] = {0};
-int sampdelay = 4;
+int sampdelay = 5;
 int topdelay = 0;
 int botdelay = 0;
  
@@ -198,7 +199,7 @@ if (Serial.available() > 0) {
     if (cc_only == false){
        ledbar_switcher(avg_Results,float_results);
     }
-    Serial.println(formatJsonData(avg_Results,float_results));
+  Serial.println(formatJsonData(avg_Results,float_results));
   //  Serial.println(formatJsonData(avg_Results,float_results,false));
     delay(1000);
   }
@@ -263,6 +264,7 @@ if (buttonState == HIGH){
 
 //------------------------------------------------------------------------------------------------------------
 void clearall(float avg_Results[48],float std_dev[48],int float_results[48],float resholder[48]){
+ 
   for (int i = 0; i < 48; i++){
     avg_Results[i] = 0;
     std_dev[i] = 0;
@@ -276,6 +278,12 @@ void clearall(float avg_Results[48],float std_dev[48],int float_results[48],floa
 //    right_bar.writeDisplay();
 //    }  
   }
+  
+//  for (int j=0; j<48; j++){
+//    for (int k=0; k<128; k++){
+//      resholder[j][k] = 0;
+//    }
+//  }
 }
 //------------------------------------------------------------------------------------------------------------
 float scanchain(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], float adc_Results[48][3], int samp_delay, int scannum){
@@ -334,17 +342,20 @@ float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[
     digitalWrite(control_pin, HIGH);
   
     for (int i = 0; i < 128; i++){
+      //digitalWrite(I_control_pin,HIGH);
       resholder[j] = analogRead(adc_pin);
+      //digitalWrite(I_control_pin,LOW);
       delayMicroseconds(10);
+      
      }
     
     //THIS PART IS JANKY: TOTALLY EMPIRICAL NUMBERS. NEED TO TEST AGAIN WITH EACH PCB
-    if (j < 17){
-      if (resholder[j] > 300 && resholder[j] < 600){
+    if (j < 16){
+      if (resholder[j] > 305 && resholder[j] < 600){
       float_results[j] = 1;
       }
     }
-    else if (j <32){
+    else if (j < 32){
      if (resholder[j] > 275 && resholder[j] < 575){
       float_results[j] = 1;
      } 
@@ -356,6 +367,9 @@ float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[
      }
   
       
+      if (avg_Results[j] < 0.5 && avg_Results[j] > 0.050){
+        float_results[j] = 0;
+      }
       if (avg_Results[j] > 3.0){
        float_results[j] = 0;
      }
