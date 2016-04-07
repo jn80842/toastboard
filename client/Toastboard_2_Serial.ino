@@ -74,8 +74,7 @@ float resholder[48];
 float avg_Results[48] = {0};
 float std_dev[48] = {0};
 int sampdelay = 5;
-int topdelay = 0;
-int botdelay = 0;
+int streamslow = 10;
  
 int control_pins[] = {control_1_Pin, control_2_Pin, control_3_Pin, control_4_Pin};
 int I_control_pins[] = {I_control_1_Pin, I_control_2_Pin, I_control_3_Pin, I_control_4_Pin};
@@ -225,6 +224,7 @@ if (Serial.available() > 0) {
    while (Serial.available()==0){
    sillydata = sillyscopeScanner(decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
    Serial.println(formatSillyscopeJson(sillydata, decodedRow,starttime));
+   delay(streamslow);
    }
     
     int control_pin = control_pins[decodedRow % 4];
@@ -367,9 +367,9 @@ float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[
      }
   
       
-      if (avg_Results[j] < 0.5 && avg_Results[j] > 0.050){
-        float_results[j] = 0;
-      }
+//      if (avg_Results[j] < 0.5 && avg_Results[j] > 0.050){
+//        float_results[j] = 0;
+//      }
       if (avg_Results[j] > 3.0){
        float_results[j] = 0;
      }
@@ -585,8 +585,9 @@ float sillyscopeScanner(int decodedRow, int control_pin_list[4], int mux_pin_lis
 //------------------------------------------------------------------------------------------------------------
 String formatSillyscopeJson(float sillydata, int decodedRow, unsigned long starttime){
 
-  unsigned long thistime = millis();
+  float thistime = millis();
   thistime -= starttime;
+  thistime = thistime / 1000.0;
   String json =  "{\"oscillo\":{\"row\":";
   json += String(decodedRow);
   json += ", \"data\":[";
@@ -595,7 +596,7 @@ String formatSillyscopeJson(float sillydata, int decodedRow, unsigned long start
   json += buffer;
   json += "],\"time\":[";
   static char buffer_2[7];
-  dtostrf(thistime,3,0,buffer_2);
+  dtostrf(thistime,3,2,buffer_2);
   json += buffer_2;
   json += "]}}";
   return json;
