@@ -58,10 +58,10 @@ int I_control_2_Pin = 17;
 int I_control_3_Pin = 19;
 int I_control_4_Pin = 31;
 
-int control_1_Pin = 5;   //THIS DOESNT WORK
+int control_1_Pin = 5;   
 int control_2_Pin = 7;
 int control_3_Pin = 8;
-int control_4_Pin = 27;  //THIS DOESNT WORK
+int control_4_Pin = 27;  
 
 int float_1_Pin = 18;
 int float_2_Pin = 3;
@@ -81,8 +81,7 @@ int total_reads = num_scans * num_rows - 1;
 
 float adc_Results[48][3];
 int float_results[48];
-//float resholder[48][128];
-float resholder[48];
+int resholder[48];
 float avg_Results[48] = {0};
 float std_dev[48] = {0};
 int sampdelay = 100;
@@ -110,8 +109,8 @@ right_bar.writeDisplay();
 
 
 //SERIAL COMM INIT
-Serial.begin(115200);
-
+//Serial.begin(115200);
+Serial.begin(921600);
 
 //PINMODES AND INITS 
 pinMode(buttonPin, INPUT_PULLUP);
@@ -200,9 +199,8 @@ if (Serial.available() > 0) {
     //floatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results);
     newfloatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results,float_pins);
     ledbar_switcher(avg_Results,float_results);
-  Serial.println(formatJsonData(avg_Results,float_results,starttime));
-  serialdebug(avg_Results,std_dev,float_results,resholder);
-  //  Serial.println(formatJsonData(avg_Results,float_results,false));
+    Serial.println(formatJsonData(avg_Results,float_results,starttime));
+    serialdebug(avg_Results,std_dev,float_results,resholder);
     delay(1000);
   }
   else if (incomingByte == sendDataContinuously){
@@ -210,27 +208,26 @@ if (Serial.available() > 0) {
     unsigned long starttime = millis();
     
     while (Serial.available() == 0){ 
-    //clearall(avg_Results,std_dev,float_results,resholder); 
-     scanchain(control_pins,I_control_pins,adc_pins,adc_Results,sampdelay,1,avg_Results); //HARD CODED IN NUM_SCANS = 1 FOR THESE FUNCTIONS
-    //stddev(num_rows,1,avg_Results,std_dev);                                  //HARD CODED IN NUM_SCANS = 1 FOR THESE FUNCTIONS
-    //floatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results);
-     newfloatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results,float_pins);
-     ledbar_switcher(avg_Results,float_results);
-     
-    Serial.println(formatJsonData(avg_Results,float_results,starttime));
-    //Serial.println(Jsonspeedtest(avg_Results,float_results,starttime));
-    
-    }
+      //clearall(avg_Results,std_dev,float_results,resholder); 
+       scanchain(control_pins,I_control_pins,adc_pins,adc_Results,sampdelay,1,avg_Results); //HARD CODED IN NUM_SCANS = 1 FOR THESE FUNCTIONS
+      //stddev(num_rows,1,avg_Results,std_dev);                                  //HARD CODED IN NUM_SCANS = 1 FOR THESE FUNCTIONS
+      //floatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results);
+       newfloatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results,float_pins);
+       ledbar_switcher(avg_Results,float_results);
+       
+     Serial.println(formatJsonData(avg_Results,float_results,starttime));
+     // Serial.println(Jsonspeedtest(avg_Results,float_results,starttime));
+      }
   }
   else if (incomingByte == sendOscilloscope){
-   decodedRow = sillyscopeDecoder(buffer); 
-   unsigned long starttime = millis();
+    decodedRow = sillyscopeDecoder(buffer); 
+    unsigned long starttime = millis();
    
    while (Serial.available()==0){
-   sillydata = sillyscopeScanner(decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
-   Serial.println(formatSillyscopeJson(sillydata, decodedRow,starttime));
-   delay(streamslow);
-   }
+     sillydata = sillyscopeScanner(decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
+     Serial.println(formatSillyscopeJson(sillydata, decodedRow,starttime));
+     delay(streamslow);
+     }
     
     int control_pin = control_pins[decodedRow % 4];
     int I_control_pin = I_control_pins[(decodedRow/4) % 4];
@@ -245,9 +242,7 @@ if (Serial.available() > 0) {
     floatcheckDebug(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results);
     //newfloatcheck(control_pins,I_control_pins,adc_pins,float_results,resholder,std_dev,avg_Results,float_pins);
     ledbar_switcher(avg_Results,float_results);
-   
     Serial.println(formatJsonData(avg_Results,float_results,starttime));
-  //  Serial.println(formatJsonData(avg_Results,float_results,false));
     delay(1000);
   }
 }
@@ -281,7 +276,7 @@ if (buttonState == LOW){
 //===========================================
 
 //------------------------------------------------------------------------------------------------------------
-void clearall(float avg_Results[48],float std_dev[48],int float_results[48],float resholder[48]){
+void clearall(float avg_Results[48],float std_dev[48],int float_results[48],int resholder[48]){
  
   for (int i = 0; i < 48; i++){
     avg_Results[i] = 0;
@@ -295,20 +290,17 @@ void clearall(float avg_Results[48],float std_dev[48],int float_results[48],floa
     right_bar.writeDisplay();
 
   }
-  
-//  for (int j=0; j<48; j++){
-//    for (int k=0; k<128; k++){
-//      resholder[j][k] = 0;
-//    }
-//  }
+ 
 }
 //------------------------------------------------------------------------------------------------------------
 float scanchain(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], float adc_Results[48][3], int samp_delay, int scannum, float avg_Results[48]){
   for (int a = 0; a < scannum; a++){
+    
   //First loop: Control pins (on muxes farthest from ADC)
   for (int i = 0; i < 4; i++){
     int control_pin = control_pin_list[i];
     digitalWrite(control_pin,HIGH);
+    
     //Second loop: Control pins / Mux selectors on mux closest to ADC:
     for (int x = 0; x < num_muxs; x++){
       int I_control_pin = mux_pin_list[x];
@@ -324,15 +316,15 @@ float scanchain(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3
           adc_value *= (1.467/4096) * 4.47; 
           
           
-          //ADC STATIC OFFSET CORRECTOR, NO NEG. ENFORCER
+          //ADC STATIC OFFSET CORRECTOR,  NO NEG. ENFORCER
           if (y==0){
-            adc_value -=  0.01;
+            adc_value -=  0.070;
           }
           else {
-             adc_value -= 0.02;
+             adc_value -= 0.13;
           }
          
-           adc_value = rounder(adc_value, 3);
+           //adc_value = rounder(adc_value, 3);
            if (adc_value < 0){
             adc_value = 0.000;
           }
@@ -342,14 +334,13 @@ float scanchain(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3
           }
           
        digitalWrite(I_control_pin,LOW);
-      
       }
     digitalWrite(control_pin,LOW);
   }
 }
 }
 //------------------------------------------------------------------------------------------------------------
-float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int float_results[48], float resholder[48], float std_dev[48], float avg_Results[48]){
+float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int float_results[48], int resholder[48], float std_dev[48], float avg_Results[48]){
   
   for (int j = 0; j<48; j++){
     int control_pin = control_pin_list[j % 4];
@@ -400,7 +391,7 @@ float floatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[
    }
 }
 //------------------------------------------------------------------------------------------------------------
-float newfloatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int float_results[48], float resholder[48], float std_dev[48], float avg_Results[48], int float_pin_list[3]){
+float newfloatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int float_results[48], int resholder[48], float std_dev[48], float avg_Results[48], int float_pin_list[3]){
   
  int floatdelay = 10;
  digitalWrite(float_out_Pin,HIGH);
@@ -433,7 +424,7 @@ float newfloatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_li
     digitalWrite(I_control_pin,LOW);
     digitalWrite(float_pin, LOW);
   
-    //delay(1);
+ 
    }
    else {
    float_results[j] = 0;
@@ -443,7 +434,7 @@ float newfloatcheck(int control_pin_list[4], int mux_pin_list[4], int adc_pin_li
 digitalWrite(float_out_Pin,LOW);
 }
 //------------------------------------------------------------------------------------------------------------
-float floatcheckDebug(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int float_results[48], float resholder[48], float std_dev[48], float avg_Results[48]){
+float floatcheckDebug(int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int float_results[48], int resholder[48], float std_dev[48], float avg_Results[48]){
   
   //for (int x = 0; x<6; x++){
   //int numScans = 1+x*5;
@@ -518,18 +509,20 @@ void ledbar_switcher(float avg_Results[48], int float_results[48]){
     right_bar.clear();
     right_bar.writeDisplay();
  
- 
-  for (int i=0; i < 48; i++){
-   if (avg_Results[i] > 3.0){  //VDD DETECTION
-    set_led(i,LED_RED); 
-    }
-   else if (avg_Results[i] > 0.100 && float_results[i] == 0){    //"SOMETHING" DETECTION
+
+  for (int i=0; i < 47; i++){
+    if (float_results[i] == 0){
+      if (avg_Results[i] > 3.0){  //VDD DETECTION
+      set_led(i,LED_RED); 
+      }
+     else if (avg_Results[i] > 0.100){    //"SOMETHING" DETECTION
      set_led(i,LED_GREEN);
-   }
-   else if (avg_Results[i] < 0.100 && float_results[i] == 0){   //GROUND DETECTION
+     }
+     else if (avg_Results[i] < 0.100){   //GROUND DETECTION
      set_led(i,LED_YELLOW);
-   }
-   }
+     }
+    }
+  }
    left_bar.writeDisplay();
    right_bar.writeDisplay();
   
@@ -568,7 +561,7 @@ float stddev(int num_rows, int num_scans, float avg_Results[48], float std_dev[4
     }
 }
 //------------------------------------------------------------------------------------------------------------
-void serialdebug(float avg_Results[48], float std_dev[48], int float_results[48], float resholder[48]){
+void serialdebug(float avg_Results[48], float std_dev[48], int float_results[48], int resholder[48]){
 Serial.println("============AVG VALUES=============");
    
  for (int i = 0; i < num_rows; i++){
@@ -647,21 +640,19 @@ String formatJsonData(float avg_results[48], int float_results[48], unsigned lon
   rows += endtime; 
   rows+= "}";
   return rows;
-  //VDD = \"v\"
-  //GND = \"g\"
+
   
 }
 //------------------------------------------------------------------------------------------------------------
 String Jsonspeedtest(float avg_results[48], int float_results[48], unsigned long starttime) {
   String rows;
-      float endtime = millis();
-    endtime -= starttime;
+  float endtime = millis();
+  endtime -= starttime;
   
   rows += endtime; 
   
   return rows;
-  //VDD = \"v\"
-  //GND = \"g\"
+
   
 }
 //------------------------------------------------------------------------------------------------------------
