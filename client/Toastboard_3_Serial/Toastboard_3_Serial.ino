@@ -226,7 +226,7 @@ if (Serial.available() > 0) {
    while (Serial.available()==0){
      sillydata = sillyscopeScanner(decodedRow, control_pins, I_control_pins,adc_pins,sampdelay);
      Serial.println(formatSillyscopeJson(sillydata, decodedRow,starttime));
-     delay(streamslow);
+     //delay(streamslow);
      }
     
     int control_pin = control_pins[decodedRow % 4];
@@ -670,7 +670,6 @@ int sillyscopeDecoder(char buffer[30]) {
 }
 //------------------------------------------------------------------------------------------------------------
 float sillyscopeScanner(int decodedRow, int control_pin_list[4], int mux_pin_list[4], int adc_pin_list[3], int samp_delay){
-    float sillydata;
     
     int control_pin = control_pin_list[decodedRow % 4];
     int I_control_pin = mux_pin_list[(decodedRow/4) % 4];
@@ -679,28 +678,26 @@ float sillyscopeScanner(int decodedRow, int control_pin_list[4], int mux_pin_lis
     digitalWrite(I_control_pin,HIGH);
     digitalWrite(control_pin, HIGH);
     
-    delay(samp_delay);
-    float adc_value = analogRead(adc_pin);
-    adc_value = adc_value * (1.467/4096) * 3.0822; 
-    float round_res = rounder(adc_value, 2);
+    delayMicroseconds(samp_delay);
+    float sillydata = analogRead(adc_pin);
+          sillydata *= (1.467/4096) * 4.47; 
           
-     //ADC STATIC OFFSET CORRECTOR, NO NEG. ENFORCER
-     if (adc_pin==0){
-    round_res = round_res - 0.01;
-    }
-    else {
-     round_res = round_res - 0.02;
-    }
-     
-    round_res = rounder(round_res, 3);
-     if (round_res < 0){
-    round_res = 0.000;
-    }
-    
-    sillydata = round_res;     
           
-    
-    
+          //ADC STATIC OFFSET CORRECTOR,  NO NEG. ENFORCER
+          if (adc_pin == 2){
+            sillydata -=  0.070;
+          }
+          else {
+             sillydata -= 0.13;
+          }
+         
+           //adc_value = rounder(adc_value, 3);
+           if (sillydata < 0){
+            sillydata = 0.000;
+          }
+          
+  
+          
     return sillydata;
 
   
@@ -711,7 +708,7 @@ String formatSillyscopeJson(float sillydata, int decodedRow, unsigned long start
 
   float thistime = millis();
   thistime -= starttime;
-  thistime = thistime / 1000.0;
+  //thistime = thistime / 1000.0;
   String json =  "{\"oscillo\":{\"row\":";
   json += String(decodedRow);
   json += ", \"data\":[";
